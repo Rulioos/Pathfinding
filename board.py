@@ -26,7 +26,7 @@ class Board:
             return False
 
     def path_cost(self, c, next_state):
-        distance = heuristic_euclidean(self.goal, next_state.get_coin_looker_pos())
+        distance = heuristic_manhattan(self.goal, next_state.get_coin_looker_pos())
         return c + distance
 
     def get_successor(self, state):

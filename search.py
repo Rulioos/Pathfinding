@@ -50,5 +50,9 @@ def heuristic_euclidean(s1, s2):
     return sqrt(pow(s1[0] - s2[0], 2) + pow(s1[1] - s2[1], 2))
 
 
+def heuristic_manhattan(s1, s2):
+    return abs(s1[0] - s2[0]) + abs(s1[1] - s2[1])
+
+
 def a_star_search(board):
     return tree_search(board, PriorityQueue(f=lambda n: board.path_cost(n.path_cost, n.state)))

@@ -17,7 +17,7 @@ desert_tile = pg.image.load("assets/DesertTileset/png/Objects/StoneBlock.png")
 occupied_tile = pg.image.load("assets/DesertTileset/png/Objects/Grass (2).png")
 coin = pg.image.load("assets/Kickpixel's - RPG Icons/coin_bronze.png")
 
-square_size = 100
+square_size = 50
 board = Board(800, 600, square_size)
 
 # drawing the grid
@@ -70,7 +70,7 @@ while score < 1000:
         board.new_goal()
         screen.blit(resize(coin, square_size, square_size), board.goal)
         screen.blit(label, (0, 0))
-        screen.blit(score_label, (700, 0))
+        screen.blit(score_label, (600, 0))
         pg.display.update()
         start_time = time.perf_counter()
         Node, n = a_star_search(board)
@@ -88,11 +88,11 @@ while score < 1000:
         screen.blit(resize(desert_tile, square_size, square_size), key)
 
     screen.blit(label, (0, 0))
-    screen.blit(score_label, (700, 0))
+    screen.blit(score_label, (600, 0))
     screen.blit(resize(human, square_size, square_size), board.state.get_coin_looker_pos())
     screen.blit(resize(coin, square_size, square_size), board.goal)
     time.sleep(0.025)
 
     pg.display.update()
 
-print(counter)
+
