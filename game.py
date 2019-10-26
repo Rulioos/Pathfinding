@@ -17,7 +17,7 @@ desert_tile = pg.image.load("assets/DesertTileset/png/Objects/StoneBlock.png")
 occupied_tile = pg.image.load("assets/DesertTileset/png/Objects/Grass (2).png")
 coin = pg.image.load("assets/Kickpixel's - RPG Icons/coin_bronze.png")
 
-square_size = 50
+square_size = 100
 board = Board(800, 600, square_size)
 
 # drawing the grid
@@ -94,5 +94,3 @@ while score < 1000:
     time.sleep(0.025)
 
     pg.display.update()
-
-
