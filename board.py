@@ -1,7 +1,5 @@
 from grid import State
-from copy import deepcopy
-import time
-from search import *
+from src.search import *
 
 
 class Board:
@@ -31,9 +29,7 @@ class Board:
 
     def get_successor(self, state):
         """Get the child of the current position of the coin_looker"""
-        w = state.width
-        h = state.height
-        sz = state.square_size
+
         (x, y) = state.get_coin_looker_pos()
         possible_next_positions = [tuple(p + q for p, q in zip((x, y), item)) for item in self.movements]
 
@@ -50,19 +46,3 @@ class Board:
                 successors.append((act, st))
 
         return successors
-
-#
-# b = Board(100, 100)
-# start_time = time.perf_counter()
-# node, n = dfs_tree_search(b)
-# end_time = time.perf_counter()
-# print(end_time - start_time)
-#
-# path = node.path()
-# path.reverse()
-#
-# print("goal:", b.goal)
-# for item in path:
-#     print(item.action)
-#     print(item.state.get_coin_looker_pos())
-#     print("____________")

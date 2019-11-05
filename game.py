@@ -1,5 +1,6 @@
 import pygame as pg
 from board import *
+import time
 
 FPS = 60
 score = 0
@@ -17,7 +18,7 @@ desert_tile = pg.image.load("assets/DesertTileset/png/Objects/StoneBlock.png")
 occupied_tile = pg.image.load("assets/DesertTileset/png/Objects/Grass (2).png")
 coin = pg.image.load("assets/Kickpixel's - RPG Icons/coin_bronze.png")
 
-square_size = 100
+square_size = 50
 board = Board(800, 600, square_size)
 
 # drawing the grid
