@@ -34,7 +34,7 @@ def distance_normalized(a, b, size=256):
 
 # Defining land and water color
 # paperColor = Color(212, 161, 104)
-grassColor = Color(22, 91, 49)
+grassColor = Color(50, 205, 50)
 mountainColor = Color(44, 45, 60)
 # paperColor = grassColor
 waterColor = Color(0, 20, 28)
@@ -99,10 +99,10 @@ class Map:
                 dist_pos = min(dist_pos_center, dist_pos_lb, dist_pos_lt, dist_pos_rb, dist_pos_rt)
 
                 base_noise -= pow(dist_pos, 0.5)
-                if base_noise <= 0:
-                    base_noise = 0
+                # if base_noise <= 0:
+                #     base_noise = 0
 
-                self.heightMap[x][y] = base_noise
+                self.heightMap[x][y] = base_noise * (base_noise > 0) + 0
 
                 # land case
                 if base_noise > self.landThreshold:
@@ -124,17 +124,22 @@ class Map:
                                           repeatx=self.mapSize,
                                           repeaty=self.mapSize) + 1
                     noise_value /= 2
-                    rd_color_offset = (random.random() - 0.5) * 8 + 24.0 * noise_value + normalized_height * 256.0
+                    rd_color_offset = (random.random() - 0.5) * 8 + 24.0 * noise_value + normalized_height * 96.0
 
                     r = grassColor.r * (0.5 + base_noise) + rd_color_offset
                     g = grassColor.g * (0.5 + base_noise) + rd_color_offset
                     b = grassColor.b * (0.5 + base_noise) + rd_color_offset
 
+                    if base_noise / (1 + dist_pos / 50) - self.landThreshold < self.landThreshold * 7 / 100:
+                        r = 194 - rd_color_offset
+                        g = 178 - rd_color_offset
+                        b = 128 - rd_color_offset
+
                     self.colorMap[x][y].set_color(r, g, b)
 
                 # water case
                 else:
-                    normalized_height = base_noise
+                    normalized_height = self.heightMap[x][y]
                     noise_value = snoise2(x * self.water_noise_perlin_scale, y * self.water_noise_perlin_scale,
                                           octaves=2,
                                           lacunarity=2.0,
@@ -148,13 +153,18 @@ class Map:
                     g = waterColor.g + rd_color_offset
                     b = waterColor.b + rd_color_offset
 
+                    if base_noise > -0.003:
+                        r = 0 + rd_color_offset
+                        g = 100 / abs(base_noise * 50) + rd_color_offset
+                        b = 140 / abs(base_noise * 50) + rd_color_offset
+
                     r, g, b = r * (r >= 0), g * (g >= 0), b * (b >= 0)
                     self.colorMap[x][y].set_color(r, g, b)
 
         print("Done")
 
 
-m = Map(size=2048)
+m = Map(size=4096)
 image = Image.new("RGB", (m.mapSize, m.mapSize))
 for x in range(0, m.mapSize):
     for y in range(0, m.mapSize):
