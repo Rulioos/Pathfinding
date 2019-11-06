@@ -57,8 +57,8 @@ class Map:
         self.colorPerlinScale = color_perlin_scale
         self.randomColorRange = random_color_range
         self.landThreshold = land_treshold
-        self.mountain_treshold = 0.2
-        self.lake_treshold = 0.12
+        self.mountain_treshold = 0.4
+        self.forest_treshold = 0.25
         self.water_noise_perlin_scale = water_noise_perlin_scale
         # define the mapGen size and mapGen center
         self.mapSize = size
@@ -68,6 +68,9 @@ class Map:
         self.mapRight_top = (3 * self.mapSize / 4, 3 * self.mapSize / 4)
         self.mapRight_bot = (3 * self.mapSize / 4, self.mapSize / 4)
 
+        self.mapTtop = (self.mapSize / 2, 2 * self.mapSize / 3)
+        self.mapTlbot = (self.mapSize / 3, self.mapSize / 3)
+        self.mapTrbot = (2 * self.mapSize / 3, self.mapSize / 3)
         # define the height mapGen and the color mapGen
         self.heightMap = [[0] * self.mapSize for x in range(self.mapSize)]
         self.colorMap = [[Color() for j in range(self.mapSize)] for i in range(self.mapSize)]
@@ -91,12 +94,18 @@ class Map:
 
                 # pixel height
 
-                dist_pos_center = distance_normalized((x, y), self.mapCenter, self.mapSize)
-                dist_pos_lb = distance_normalized((x, y), self.mapLeft_bot, self.mapSize)
-                dist_pos_lt = distance_normalized((x, y), self.mapLeft_top, self.mapSize)
-                dist_pos_rb = distance_normalized((x, y), self.mapRight_bot, self.mapSize)
-                dist_pos_rt = distance_normalized((x, y), self.mapRight_top, self.mapSize)
-                dist_pos = min(dist_pos_center, dist_pos_lb, dist_pos_lt, dist_pos_rb, dist_pos_rt)
+                # dist_pos_center = distance_normalized((x, y), self.mapCenter, self.mapSize)
+                # dist_pos_lb = distance_normalized((x, y), self.mapLeft_bot, self.mapSize)
+                # dist_pos_lt = distance_normalized((x, y), self.mapLeft_top, self.mapSize)
+                # dist_pos_rb = distance_normalized((x, y), self.mapRight_bot, self.mapSize)
+                # dist_pos_rt = distance_normalized((x, y), self.mapRight_top, self.mapSize)
+
+                dist_pos_tt = distance_normalized((x, y), self.mapTtop, self.mapSize)
+                dist_pos_blt = distance_normalized((x, y), self.mapTlbot, self.mapSize)
+                dist_pos_brt = distance_normalized((x, y), self.mapTrbot, self.mapSize)
+
+                dist_pos = min(dist_pos_blt, dist_pos_brt, dist_pos_tt)
+                # dist_pos = min(dist_pos_center, dist_pos_lb, dist_pos_lt, dist_pos_rb, dist_pos_rt)
 
                 base_noise -= pow(dist_pos, 0.5)
                 # if base_noise <= 0:
@@ -124,16 +133,26 @@ class Map:
                                           repeatx=self.mapSize,
                                           repeaty=self.mapSize) + 1
                     noise_value /= 2
-                    rd_color_offset = (random.random() - 0.5) * 8 + 24.0 * noise_value + normalized_height * 96.0
+                    rd_color_offset = (random.random() - 0.5) * 8 + 24.0 * noise_value + normalized_height * 256.0
 
-                    r = grassColor.r * (0.5 + base_noise) + rd_color_offset
-                    g = grassColor.g * (0.5 + base_noise) + rd_color_offset
-                    b = grassColor.b * (0.5 + base_noise) + rd_color_offset
+                    r = grassColor.r + rd_color_offset
+                    g = grassColor.g + rd_color_offset
+                    b = grassColor.b + rd_color_offset
 
-                    if base_noise / (1 + dist_pos / 50) - self.landThreshold < self.landThreshold * 7 / 100:
+                    if base_noise / (1 + dist_pos / 10) - self.landThreshold < self.landThreshold * 10 / 100:
                         r = 194 - rd_color_offset
                         g = 178 - rd_color_offset
                         b = 128 - rd_color_offset
+
+                    elif base_noise > self.mountain_treshold:
+                        r = mountainColor.r*(base_noise*10) + rd_color_offset
+                        g = mountainColor.g*(base_noise*10) + rd_color_offset
+                        b = mountainColor.b + rd_color_offset
+
+                    elif self.forest_treshold < base_noise <= self.mountain_treshold:
+                        r = 34*(base_noise*10) + rd_color_offset
+                        g = 139*(base_noise*10) + rd_color_offset
+                        b = 34*(base_noise*10) + rd_color_offset
 
                     self.colorMap[x][y].set_color(r, g, b)
 
@@ -149,14 +168,14 @@ class Map:
                                           repeaty=self.mapSize) + 1
                     noise_value /= 2
                     rd_color_offset = (random.random() - 0.5) * 4 + 12.0 * noise_value + normalized_height * 96.0
-                    r = waterColor.r + rd_color_offset
-                    g = waterColor.g + rd_color_offset
-                    b = waterColor.b + rd_color_offset
+                    r = waterColor.r * (0.5 + abs(base_noise)) + rd_color_offset
+                    g = waterColor.g * (0.5 + abs(base_noise)) + rd_color_offset
+                    b = waterColor.b * (0.5 + abs(base_noise)) + rd_color_offset
 
-                    if base_noise > -0.003:
+                    if base_noise > -0.002:
                         r = 0 + rd_color_offset
                         g = 100 / abs(base_noise * 50) + rd_color_offset
-                        b = 140 / abs(base_noise * 50) + rd_color_offset
+                        b = 140 / abs(base_noise * 30) + rd_color_offset
 
                     r, g, b = r * (r >= 0), g * (g >= 0), b * (b >= 0)
                     self.colorMap[x][y].set_color(r, g, b)
@@ -164,7 +183,7 @@ class Map:
         print("Done")
 
 
-m = Map(size=4096)
+m = Map(size=1024)
 image = Image.new("RGB", (m.mapSize, m.mapSize))
 for x in range(0, m.mapSize):
     for y in range(0, m.mapSize):
