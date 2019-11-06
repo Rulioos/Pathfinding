@@ -57,8 +57,8 @@ class Map:
         self.colorPerlinScale = color_perlin_scale
         self.randomColorRange = random_color_range
         self.landThreshold = land_treshold
-        self.mountain_treshold = 0.4
-        self.forest_treshold = 0.25
+        self.mountain_treshold = 0.28
+        self.forest_treshold = 0.2
         self.water_noise_perlin_scale = water_noise_perlin_scale
         # define the mapGen size and mapGen center
         self.mapSize = size
@@ -145,14 +145,14 @@ class Map:
                         b = 128 - rd_color_offset
 
                     elif base_noise > self.mountain_treshold:
-                        r = mountainColor.r*(base_noise*10) + rd_color_offset
-                        g = mountainColor.g*(base_noise*10) + rd_color_offset
-                        b = mountainColor.b + rd_color_offset
+                        r = mountainColor.r + rd_color_offset * 2 * base_noise
+                        g = mountainColor.g + rd_color_offset * 2 * base_noise
+                        b = mountainColor.b + rd_color_offset * 2 * base_noise
 
                     elif self.forest_treshold < base_noise <= self.mountain_treshold:
-                        r = 34*(base_noise*10) + rd_color_offset
-                        g = 139*(base_noise*10) + rd_color_offset
-                        b = 34*(base_noise*10) + rd_color_offset
+                        r = 34 + rd_color_offset
+                        g = 139 + rd_color_offset
+                        b = 34 + rd_color_offset
 
                     self.colorMap[x][y].set_color(r, g, b)
 
@@ -183,7 +183,7 @@ class Map:
         print("Done")
 
 
-m = Map(size=1024)
+m = Map(size=2048)
 image = Image.new("RGB", (m.mapSize, m.mapSize))
 for x in range(0, m.mapSize):
     for y in range(0, m.mapSize):
