@@ -3,7 +3,7 @@ from mapGen.color import *
 from math import sqrt, pow
 import random
 import tqdm
-from PIL import Image
+from PIL import Image, ImageDraw
 
 
 def distance(a, b):
@@ -37,7 +37,7 @@ def distance_normalized(a, b, size=256):
 grassColor = Color(50, 205, 50)
 mountainColor = Color(44, 45, 60)
 # paperColor = grassColor
-waterColor = Color(0, 20, 28)
+waterColor = Color(0, 40, 56)
 waterLakeColor = Color(171, 217, 227)
 
 
@@ -50,27 +50,26 @@ class Map:
     """
 
     def __init__(self, size=2048, color_perlin_scale=0.025, perlin_scale=0.0025, random_color_range=10,
-                 land_treshold=0.1, water_noise_perlin_scale=0.01):
+                 land_treshold=0.01, water_noise_perlin_scale=0.01):
         # define hyper parameters for mapGen generation
-        self.perlin_offset = random.random() * 2048
+        self.perlin_offset = random.random() * size
         self.perlin_scale = perlin_scale
         self.colorPerlinScale = color_perlin_scale
         self.randomColorRange = random_color_range
         self.landThreshold = land_treshold
-        self.mountain_treshold = 0.28
-        self.forest_treshold = 0.2
+        self.mountain_treshold = 0.22
+        self.forest_treshold = 0.1
         self.water_noise_perlin_scale = water_noise_perlin_scale
         # define the mapGen size and mapGen center
         self.mapSize = size
         self.mapCenter = (self.mapSize / 2, self.mapSize / 2)
-        self.mapLeft_bot = (self.mapSize / 4, self.mapSize / 4)
-        self.mapLeft_top = (self.mapSize / 4, 3 * self.mapSize / 4)
-        self.mapRight_top = (3 * self.mapSize / 4, 3 * self.mapSize / 4)
-        self.mapRight_bot = (3 * self.mapSize / 4, self.mapSize / 4)
-
-        self.mapTtop = (self.mapSize / 2, 2 * self.mapSize / 3)
-        self.mapTlbot = (self.mapSize / 3, self.mapSize / 3)
-        self.mapTrbot = (2 * self.mapSize / 3, self.mapSize / 3)
+        self.mapPos = []
+        # self.mapPos.append((self.mapSize / 2, random.randint(1, 4) * self.mapSize / 5))
+        # self.mapPos.append((random.randint(1, 4) * self.mapSize / 5, random.randint(1, 4) * self.mapSize / 5))
+        # self.mapPos.append((random.randint(1, 4) * self.mapSize / 5, random.randint(1, 4) * self.mapSize / 5))
+        # self.mapPos.append((random.randint(1, 4) * self.mapSize / 5, random.randint(1, 4) * self.mapSize / 5))
+        # self.mapPos.append((3 * self.mapSize / 4, self.mapSize / 4))
+        self.mapPos.append((self.mapSize / 2, self.mapSize / 2))
         # define the height mapGen and the color mapGen
         self.heightMap = [[0] * self.mapSize for x in range(self.mapSize)]
         self.colorMap = [[Color() for j in range(self.mapSize)] for i in range(self.mapSize)]
@@ -84,7 +83,7 @@ class Map:
             for y in range(self.mapSize):
                 # generate base perlin noise value
                 base_noise = snoise2(x * self.perlin_scale, y * self.perlin_scale,
-                                     octaves=8,
+                                     octaves=9,
                                      lacunarity=2.0,
                                      persistence=0.5,
                                      base=self.perlin_offset,
@@ -99,15 +98,15 @@ class Map:
                 # dist_pos_lt = distance_normalized((x, y), self.mapLeft_top, self.mapSize)
                 # dist_pos_rb = distance_normalized((x, y), self.mapRight_bot, self.mapSize)
                 # dist_pos_rt = distance_normalized((x, y), self.mapRight_top, self.mapSize)
+                dist_pos = distance_normalized((x, y), self.mapPos[0], self.mapSize)
+                for item in self.mapPos:
+                    d = distance_normalized((x, y), item, self.mapSize)
+                    if d < dist_pos:
+                        dist_pos = d
 
-                dist_pos_tt = distance_normalized((x, y), self.mapTtop, self.mapSize)
-                dist_pos_blt = distance_normalized((x, y), self.mapTlbot, self.mapSize)
-                dist_pos_brt = distance_normalized((x, y), self.mapTrbot, self.mapSize)
-
-                dist_pos = min(dist_pos_blt, dist_pos_brt, dist_pos_tt)
                 # dist_pos = min(dist_pos_center, dist_pos_lb, dist_pos_lt, dist_pos_rb, dist_pos_rt)
 
-                base_noise -= pow(dist_pos, 0.5)
+                base_noise -= pow(dist_pos, 0.6)
                 # if base_noise <= 0:
                 #     base_noise = 0
 
@@ -145,9 +144,9 @@ class Map:
                         b = 128 - rd_color_offset
 
                     elif base_noise > self.mountain_treshold:
-                        r = mountainColor.r + rd_color_offset * 2 * base_noise
-                        g = mountainColor.g + rd_color_offset * 2 * base_noise
-                        b = mountainColor.b + rd_color_offset * 2 * base_noise
+                        r = mountainColor.r * 5 * base_noise + rd_color_offset
+                        g = mountainColor.g * 5 * base_noise + rd_color_offset
+                        b = mountainColor.b * 5 * base_noise + rd_color_offset
 
                     elif self.forest_treshold < base_noise <= self.mountain_treshold:
                         r = 34 + rd_color_offset
@@ -172,10 +171,10 @@ class Map:
                     g = waterColor.g * (0.5 + abs(base_noise)) + rd_color_offset
                     b = waterColor.b * (0.5 + abs(base_noise)) + rd_color_offset
 
-                    if base_noise > -0.002:
+                    if base_noise > -0.004:
                         r = 0 + rd_color_offset
-                        g = 100 / abs(base_noise * 50) + rd_color_offset
-                        b = 140 / abs(base_noise * 30) + rd_color_offset
+                        g = 100 / abs(base_noise * 200) + rd_color_offset
+                        b = 140 / abs(base_noise * 200) + rd_color_offset
 
                     r, g, b = r * (r >= 0), g * (g >= 0), b * (b >= 0)
                     self.colorMap[x][y].set_color(r, g, b)
@@ -185,9 +184,16 @@ class Map:
 
 m = Map(size=2048)
 image = Image.new("RGB", (m.mapSize, m.mapSize))
+draw = ImageDraw.Draw(image)
 for x in range(0, m.mapSize):
     for y in range(0, m.mapSize):
         image.putpixel((x, y), m.colorMap[x][y].get_color())
+        if y % 16 == 0:
+            draw.line(((0, y), (m.mapSize, y)))
+
+    if x % 16 == 0:
+        draw.line(((x, 0), (x, m.mapSize)))
+
 print("Saving the image")
-image.save("mapBase.png")
+image.save("mapBase.png", dpi=(300, 300))
 image.show()
