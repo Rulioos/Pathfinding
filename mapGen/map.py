@@ -64,11 +64,6 @@ class Map:
         self.mapSize = size
         self.mapCenter = (self.mapSize / 2, self.mapSize / 2)
         self.mapPos = []
-        # self.mapPos.append((self.mapSize / 2, random.randint(1, 4) * self.mapSize / 5))
-        # self.mapPos.append((random.randint(1, 4) * self.mapSize / 5, random.randint(1, 4) * self.mapSize / 5))
-        # self.mapPos.append((random.randint(1, 4) * self.mapSize / 5, random.randint(1, 4) * self.mapSize / 5))
-        # self.mapPos.append((random.randint(1, 4) * self.mapSize / 5, random.randint(1, 4) * self.mapSize / 5))
-        # self.mapPos.append((3 * self.mapSize / 4, self.mapSize / 4))
         self.mapPos.append((self.mapSize / 2, self.mapSize / 2))
         # define the height mapGen and the color mapGen
         self.heightMap = [[0] * self.mapSize for x in range(self.mapSize)]
@@ -92,25 +87,14 @@ class Map:
                 base_noise /= 2
 
                 # pixel height
-
-                # dist_pos_center = distance_normalized((x, y), self.mapCenter, self.mapSize)
-                # dist_pos_lb = distance_normalized((x, y), self.mapLeft_bot, self.mapSize)
-                # dist_pos_lt = distance_normalized((x, y), self.mapLeft_top, self.mapSize)
-                # dist_pos_rb = distance_normalized((x, y), self.mapRight_bot, self.mapSize)
-                # dist_pos_rt = distance_normalized((x, y), self.mapRight_top, self.mapSize)
                 dist_pos = distance_normalized((x, y), self.mapPos[0], self.mapSize)
                 for item in self.mapPos:
                     d = distance_normalized((x, y), item, self.mapSize)
                     if d < dist_pos:
                         dist_pos = d
 
-                # dist_pos = min(dist_pos_center, dist_pos_lb, dist_pos_lt, dist_pos_rb, dist_pos_rt)
-
                 base_noise -= pow(dist_pos, 0.6)
-                # if base_noise <= 0:
-                #     base_noise = 0
-
-                self.heightMap[x][y] = base_noise * (base_noise > 0) + 0
+                self.heightMap[x][y] = base_noise
 
                 # land case
                 if base_noise > self.landThreshold:
@@ -157,7 +141,7 @@ class Map:
 
                 # water case
                 else:
-                    normalized_height = self.heightMap[x][y]
+                    normalized_height = base_noise * (base_noise > 0) + 0
                     noise_value = snoise2(x * self.water_noise_perlin_scale, y * self.water_noise_perlin_scale,
                                           octaves=2,
                                           lacunarity=2.0,
@@ -181,19 +165,24 @@ class Map:
 
         print("Done")
 
+    def draw_map(self):
+        for row in self.colorMap:
+            for color in row:
+                yield color.get_color()
 
-m = Map(size=2048)
-image = Image.new("RGB", (m.mapSize, m.mapSize))
-draw = ImageDraw.Draw(image)
-for x in range(0, m.mapSize):
-    for y in range(0, m.mapSize):
-        image.putpixel((x, y), m.colorMap[x][y].get_color())
-        if y % 16 == 0:
-            draw.line(((0, y), (m.mapSize, y)))
-
-    if x % 16 == 0:
-        draw.line(((x, 0), (x, m.mapSize)))
-
-print("Saving the image")
-image.save("mapBase.png", dpi=(300, 300))
-image.show()
+#
+# m = Map(size=2048)
+# image = Image.new("RGB", (m.mapSize, m.mapSize))
+# draw = ImageDraw.Draw(image)
+# for x in range(0, m.mapSize):
+#     for y in range(0, m.mapSize):
+#         image.putpixel((x, y), m.colorMap[x][y].get_color())
+#         if y % 16 == 0:
+#             draw.line(((0, y), (m.mapSize, y)))
+#
+#     if x % 16 == 0:
+#         draw.line(((x, 0), (x, m.mapSize)))
+#
+# print("Saving the image")
+# image.save("mapBase.png", dpi=(300, 300))
+# # image.show()
