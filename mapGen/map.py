@@ -33,8 +33,8 @@ def distance_normalized(a, b, size=256):
 
 
 # Defining land and water color
-# paperColor = Color(212, 161, 104)
-grassColor = Color(50, 205, 50)
+paperColor = grassColor = Color(212, 161, 104)
+# grassColor = Color(50, 205, 50)
 mountainColor = Color(44, 45, 60)
 # paperColor = grassColor
 waterColor = Color(0, 40, 56)
@@ -50,7 +50,7 @@ class Map:
     """
 
     def __init__(self, size=2048, color_perlin_scale=0.025, perlin_scale=0.0025, random_color_range=10,
-                 land_treshold=0.01, water_noise_perlin_scale=0.01):
+                 land_treshold=0.001, water_noise_perlin_scale=0.01):
         # define hyper parameters for mapGen generation
         self.perlin_offset = random.random() * size
         self.perlin_scale = perlin_scale
@@ -58,7 +58,7 @@ class Map:
         self.randomColorRange = random_color_range
         self.landThreshold = land_treshold
         self.mountain_treshold = 0.22
-        self.forest_treshold = 0.1
+        self.forest_treshold = 0.12
         self.water_noise_perlin_scale = water_noise_perlin_scale
         # define the mapGen size and mapGen center
         self.mapSize = size
@@ -79,8 +79,8 @@ class Map:
                 # generate base perlin noise value
                 base_noise = snoise2(x * self.perlin_scale, y * self.perlin_scale,
                                      octaves=9,
-                                     lacunarity=2.0,
-                                     persistence=0.5,
+                                     lacunarity=5.0,
+                                     persistence=0.25,
                                      base=self.perlin_offset,
                                      repeatx=self.mapSize,
                                      repeaty=self.mapSize) + 1
@@ -93,14 +93,14 @@ class Map:
                     if d < dist_pos:
                         dist_pos = d
 
-                base_noise -= pow(dist_pos, 0.6)
+                base_noise -= pow(dist_pos, 1.5)
                 self.heightMap[x][y] = base_noise
 
                 # land case
                 if base_noise > self.landThreshold:
                     detail_perlin_value = snoise2(x * self.perlin_scale, y * self.perlin_scale,
                                                   octaves=12,
-                                                  lacunarity=2.0,
+                                                  lacunarity=16.0,
                                                   persistence=0.8,
                                                   base=self.perlin_offset,
                                                   repeatx=self.mapSize,
@@ -144,7 +144,7 @@ class Map:
                     normalized_height = base_noise * (base_noise > 0) + 0
                     noise_value = snoise2(x * self.water_noise_perlin_scale, y * self.water_noise_perlin_scale,
                                           octaves=2,
-                                          lacunarity=2.0,
+                                          lacunarity=14.0,
                                           persistence=0.5,
                                           base=self.perlin_offset,
                                           repeatx=self.mapSize,
@@ -170,19 +170,19 @@ class Map:
             for color in row:
                 yield color.get_color()
 
-#
-# m = Map(size=2048)
-# image = Image.new("RGB", (m.mapSize, m.mapSize))
-# draw = ImageDraw.Draw(image)
-# for x in range(0, m.mapSize):
-#     for y in range(0, m.mapSize):
-#         image.putpixel((x, y), m.colorMap[x][y].get_color())
-#         if y % 16 == 0:
-#             draw.line(((0, y), (m.mapSize, y)))
-#
-#     if x % 16 == 0:
-#         draw.line(((x, 0), (x, m.mapSize)))
-#
-# print("Saving the image")
-# image.save("mapBase.png", dpi=(300, 300))
-# # image.show()
+
+m = Map(size=256)
+image = Image.new("RGB", (m.mapSize, m.mapSize))
+draw = ImageDraw.Draw(image)
+for x in range(0, m.mapSize):
+    for y in range(0, m.mapSize):
+        image.putpixel((x, y), m.colorMap[x][y].get_color())
+        if y % 16 == 0:
+            pass  # draw.line(((0, y), (m.mapSize, y)))
+
+    if x % 16 == 0:
+        pass  # draw.line(((x, 0), (x, m.mapSize)))
+
+print("Saving the image")
+image.save("mapBase.png", dpi=(300, 300))
+image.show()
